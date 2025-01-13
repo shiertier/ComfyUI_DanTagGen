@@ -2,12 +2,12 @@ from contextlib import nullcontext
 from random import shuffle
 
 import torch
-from llama_cpp import Llama
+# from llama_cpp import Llama
 from transformers import GenerationConfig, PreTrainedModel, PreTrainedTokenizerBase
 
 
 def generate(
-    model: PreTrainedModel | Llama,
+    model, # : PreTrainedModel | Llama
     tokenizer: PreTrainedTokenizerBase,
     prompt="",
     temperature=0.5,
@@ -18,16 +18,16 @@ def generate(
     autocast_gen=lambda: torch.autocast("cpu", enabled=False),
     **kwargs,
 ):
-    if isinstance(model, Llama):
-        result = model.create_completion(
-            prompt,
-            temperature=temperature,
-            top_p=top_p,
-            top_k=top_k,
-            max_tokens=max_new_tokens,
-            repeat_penalty=repetition_penalty or 1,
-        )
-        return prompt + result["choices"][0]["text"]
+    # if isinstance(model, Llama):
+    #     result = model.create_completion(
+    #         prompt,
+    #         temperature=temperature,
+    #         top_p=top_p,
+    #         top_k=top_k,
+    #         max_tokens=max_new_tokens,
+    #         repeat_penalty=repetition_penalty or 1,
+    #     )
+    #     return prompt + result["choices"][0]["text"]
 
     torch.cuda.empty_cache()
     inputs = tokenizer(prompt, return_tensors="pt")
