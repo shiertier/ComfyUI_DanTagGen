@@ -3,15 +3,14 @@ from transformers import LlamaForCausalLM, LlamaTokenizer
 
 from .lib_dantaggen.app import get_result
 from .lib_dantaggen.kgen.metainfo import TARGET
+from folder_paths import models_dir
+import os.path
 
-MODEL_PATHS = [
-    "KBlueLeaf/DanTagGen-alpha",
-    "KBlueLeaf/DanTagGen-beta",
-    "KBlueLeaf/DanTagGen-delta",
-    "KBlueLeaf/DanTagGen-delta-rev2",
-]
+
+# 直接使用单个模型路径
+MODEL_PATH = os.path.join(models_dir, 'dtg', 'DanTagGen-delta-rev2')
+
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-
 
 class DanTagGen:
     """DanTagGen node."""
@@ -20,7 +19,6 @@ class DanTagGen:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "model": (MODEL_PATHS,),
                 "artist": ("STRING", {"default": ""}),
                 "characters": ("STRING", {"default": ""}),
                 "copyrights": ("STRING", {"default": ""}),
@@ -49,7 +47,6 @@ class DanTagGen:
 
     def generate(
         self,
-        model: str,
         rating: str,
         artist: str,
         characters: str,
@@ -63,18 +60,10 @@ class DanTagGen:
         escape_bracket: bool,
         temperature: float,
     ):
-        models = {
-            model_path: [
-                LlamaForCausalLM.from_pretrained(model_path)
-                .requires_grad_(False)
-                .eval()
-                .half()
-                .to(DEVICE),
-                LlamaTokenizer.from_pretrained(model_path),
-            ]
-            for model_path in MODEL_PATHS
-        }
-        text_model, tokenizer = models[model]
+        # 直接使用单个模型路径
+        text_model = LlamaForCausalLM.from_pretrained(MODEL_PATH).requires_grad_(False).eval().half().to(DEVICE)
+        tokenizer = LlamaTokenizer.from_pretrained(MODEL_PATH)
+
         result = list(
             get_result(
                 text_model,
@@ -94,7 +83,6 @@ class DanTagGen:
         )[-1]
         output, llm_output, _ = result
         return {"result": (output, llm_output)}
-
 
 NODE_CLASS_MAPPINGS = {
     "PromptDanTagGen": DanTagGen,
